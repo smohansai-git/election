@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Control Center - Election 2026</title>
+    <style>
+        :root { 
+            --primary: #e94560; 
+            --bg: #1a1a2e; 
+            --card: #16213e; 
+            --text: #ffffff; 
+            --accent: #f1c40f;
+            --success: #27ae60;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: var(--bg); 
+            color: var(--text); 
+            padding: 40px 20px; 
+            margin: 0;
+            position: relative;
+        }
+
+        .container { max-width: 900px; margin: auto; }
+
+        /* TOP RIGHT SETTINGS BUTTON */
+        .settings-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #34495e;
+            color: white;
+            padding: 12px 18px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: bold;
+            border: 1px solid var(--primary);
+            transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+        .settings-btn:hover { background: var(--primary); transform: scale(1.05); }
+
+        h1 { text-align: center; color: var(--primary); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 40px; }
+
+        .slot-card { 
+            background: var(--card); 
+            padding: 25px; 
+            border-radius: 15px; 
+            margin-bottom: 25px; 
+            border: 1px solid #0f3460; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+        }
+
+        .slot-header { 
+            border-left: 5px solid var(--primary); 
+            padding-left: 15px; 
+            margin-bottom: 20px; 
+            color: var(--primary); 
+            font-size: 22px;
+        }
+
+        .input-group { position: relative; display: inline-block; margin: 10px 5px; }
+
+        input, select { 
+            padding: 12px; 
+            border-radius: 8px; 
+            border: none; 
+            width: 220px; 
+            font-size: 14px; 
+            background: #f8f9fa;
+            color: #333;
+        }
+
+        .toggle-pass { 
+            position: absolute; 
+            right: 10px; 
+            top: 10px; 
+            cursor: pointer; 
+            color: #333; 
+            font-size: 18px; 
+            user-select: none;
+        }
+
+        button { 
+            padding: 12px 20px; 
+            border: none; 
+            color: white; 
+            cursor: pointer; 
+            border-radius: 8px; 
+            font-weight: bold; 
+            transition: 0.3s; 
+            margin: 5px; 
+            text-transform: uppercase;
+        }
+
+        button:hover { opacity: 0.9; transform: translateY(-2px); }
+        
+        .btn-auth { background: var(--primary); }
+        .btn-green { background: var(--success); }
+        .btn-blue { background: #3498db; }
+        .btn-delete { background: #c0392b; }
+        .btn-reset { background: #8e44ad; }
+
+        .hidden { display: none; }
+
+        .sub-section { 
+            background: rgba(255,255,255,0.05); 
+            padding: 15px; 
+            border-radius: 10px; 
+            margin-top: 15px; 
+            border: 1px dashed #444; 
+        }
+
+        #timer { font-size: 24px; color: var(--accent); font-weight: bold; margin: 15px 0; text-align: center; }
+
+        .result-box { 
+            background: #0f3460; 
+            padding: 20px; 
+            border-radius: 8px; 
+            border-left: 5px solid var(--success); 
+            margin-top: 15px; 
+            font-size: 18px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+
+<a href="admin-settings.html" target="_blank" class="settings-btn" id="settingsBtn">⚙️ Password Change</a>
+
+<div class="container">
+    <h1>🏛️ Admin Control Center</h1>
+
+    <div class="slot-card">
+        <h2 class="slot-header">Slot 1: Counting & Results</h2>
+        <div id="lock1">
+            <input type="text" id="id1" placeholder="Admin ID">
+            <div class="input-group">
+                <input type="password" id="pass1" placeholder="Password">
+                <span class="toggle-pass" onclick="togglePass('pass1')">👁️</span>
+            </div>
+            <button class="btn-auth" onclick="unlock(1)">Unlock Slot 1</button>
+        </div>
+        <div id="content1" class="hidden">
+            <button class="btn-blue" onclick="startTimer()">Start 60s Final Counting</button>
+            <button class="btn-reset" onclick="resetElection()">Reset for New Round</button>
+            <div id="timer"></div>
+            <div id="finalResult" class="hidden result-box"></div>
+        </div>
+    </div>
+
+    <div class="slot-card">
+        <h2 class="slot-header">Slot 2: Voter Management</h2>
+        <div id="lock2">
+            <input type="text" id="id2" placeholder="Admin ID">
+            <div class="input-group">
+                <input type="password" id="pass2" placeholder="Password">
+                <span class="toggle-pass" onclick="togglePass('pass2')">👁️</span>
+            </div>
+            <button class="btn-auth" onclick="unlock(2)">Unlock Slot 2</button>
+        </div>
+        <div id="content2" class="hidden">
+            <div class="sub-section">
+                <h4>➕ Add New Voter</h4>
+                <input type="text" id="vAddId" placeholder="Voter ID">
+                <div class="input-group">
+                    <input type="password" id="vAddPass" placeholder="Password">
+                    <span class="toggle-pass" onclick="togglePass('vAddPass')">👁️</span>
+                </div>
+                <button class="btn-green" onclick="addVoter()">Add Voter</button>
+            </div>
+
+            <div class="sub-section">
+                <h4>✏️ Edit / 🗑️ Remove Voter</h4>
+                <select id="voterSelect" style="width: 100%; max-width: 480px; margin-bottom: 10px;"></select><br>
+                <div class="input-group">
+                    <input type="password" id="vEditPass" placeholder="New Password">
+                    <span class="toggle-pass" onclick="togglePass('vEditPass')">👁️</span>
+                </div>
+                <button class="btn-blue" onclick="editVoter()">Update Pass</button>
+                <button class="btn-delete" onclick="removeVoter()">Remove Voter</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="slot-card">
+        <h2 class="slot-header">Slot 3: Candidate Management</h2>
+        <div id="lock3">
+            <input type="text" id="id3" placeholder="Admin ID">
+            <div class="input-group">
+                <input type="password" id="pass3" placeholder="Password">
+                <span class="toggle-pass" onclick="togglePass('pass3')">👁️</span>
+            </div>
+            <button class="btn-auth" onclick="unlock(3)">Unlock Slot 3</button>
+        </div>
+        <div id="content3" class="hidden">
+            <div class="sub-section">
+                <h4>➕ Add Candidate</h4>
+                <input type="text" id="newCName" placeholder="Candidate Name">
+                <button class="btn-green" onclick="addCandidate()">Add Candidate</button>
+            </div>
+            
+            <div class="sub-section">
+                <h4>✏️ Edit / 🗑️ Remove Candidate</h4>
+                <select id="editCSelect" style="width: 100%; max-width: 480px; margin-bottom: 10px;"></select><br>
+                <input type="text" id="editCName" placeholder="New Name">
+                <button class="btn-blue" onclick="editCandidate()">Update Name</button>
+                <button class="btn-delete" onclick="removeCandidate()">Remove Candidate</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- AUTHENTICATION ---
+    function togglePass(id) {
+        const x = document.getElementById(id);
+        x.type = x.type === "password" ? "text" : "password";
+    }
+
+    function unlock(num) {
+        const idInput = document.getElementById(`id${num}`).value;
+        const passInput = document.getElementById(`pass${num}`).value;
+        
+        // Fetch credentials from localStorage (fallback to defaults)
+        const adminCreds = JSON.parse(localStorage.getItem('adminMainCreds')) || { id: "sitams143", pass: "election143" };
+
+        if(idInput === adminCreds.id && passInput === adminCreds.pass) {
+            document.getElementById(`lock${num}`).classList.add('hidden');
+            document.getElementById(`content${num}`).classList.remove('hidden');
+            if(num === 2) updateVoterDropdown();
+            if(num === 3) updateCandidateDropdown();
+        } else { 
+            alert("Access Denied: Incorrect Admin Credentials!"); 
+        }
+    }
+
+    // --- SLOT 1: COUNTING & WINNER DECLARATION ---
+    function startTimer() {
+        let sec = 60;
+        const t = document.getElementById('timer');
+        document.getElementById('finalResult').classList.add('hidden');
+        const timer = setInterval(() => {
+            t.innerText = `Securing Results: ${sec}s`;
+            if(sec-- <= 0) {
+                clearInterval(timer);
+                t.innerText = "Counting Finished!";
+                showResults();
+            }
+        }, 1000);
+    }
+
+    function showResults() {
+        const votes = JSON.parse(localStorage.getItem('votes')) || {};
+        const res = document.getElementById('finalResult');
+        res.classList.remove('hidden');
+        
+        let output = "<b>📊 OFFICIAL VOTE TALLY:</b><br><hr>";
+        let maxVotes = -1;
+        let winners = [];
+
+        for (let name in votes) {
+            let count = votes[name];
+            output += `${name}: ${count} votes<br>`;
+            if (count > maxVotes) {
+                maxVotes = count;
+                winners = [name];
+            } else if (count === maxVotes && maxVotes > 0) {
+                winners.push(name);
+            }
+        }
+
+        output += "<hr>";
+        if (maxVotes <= 0) {
+            output += "<b style='color: #e94560;'>RESULT: No votes were cast yet.</b>";
+        } else if (winners.length === 1) {
+            output += `<b style='color: #27ae60; font-size: 24px;'>WINNER: 👑 ${winners[0]} 👑</b>`;
+        } else {
+            output += `<b style='color: #f1c40f;'>RESULT: It is a TIE between ${winners.join(" & ")}</b>`;
+        }
+        res.innerHTML = output;
+    }
+
+    function resetElection() {
+        if(!confirm("Are you sure? This resets all voters and vote counts.")) return;
+        let cands = JSON.parse(localStorage.getItem('candidates')) || [];
+        let resetVotes = {};
+        cands.forEach(c => resetVotes[c] = 0);
+        localStorage.setItem('votes', JSON.stringify(resetVotes));
+
+        let voters = JSON.parse(localStorage.getItem('voters')) || [];
+        voters.forEach(v => v.hasVoted = false);
+        localStorage.setItem('voters', JSON.stringify(voters));
+
+        document.getElementById('finalResult').classList.add('hidden');
+        document.getElementById('timer').innerText = "System Reset: Voters can now vote again.";
+        updateVoterDropdown();
+        alert("Election has been reset for a new round!");
+    }
+
+    // --- SLOT 2: VOTER CRUD ---
+    function addVoter() {
+        const id = document.getElementById('vAddId').value.trim();
+        const pass = document.getElementById('vAddPass').value.trim();
+        if(!id || !pass) return alert("Fill all fields");
+        let voters = JSON.parse(localStorage.getItem('voters')) || [];
+        if(voters.find(v => v.id === id)) return alert("Voter ID already exists!");
+        voters.push({id, pass, hasVoted: false});
+        localStorage.setItem('voters', JSON.stringify(voters));
+        updateVoterDropdown();
+        document.getElementById('vAddId').value = ""; document.getElementById('vAddPass').value = "";
+        alert("Voter Added!");
+    }
+
+    function editVoter() {
+        const id = document.getElementById('voterSelect').value;
+        const newPass = document.getElementById('vEditPass').value.trim();
+        if(!id || !newPass) return alert("Select voter and enter new password");
+        let voters = JSON.parse(localStorage.getItem('voters'));
+        const idx = voters.findIndex(v => v.id === id);
+        voters[idx].pass = newPass;
+        localStorage.setItem('voters', JSON.stringify(voters));
+        alert("Password Updated Successfully!");
+    }
+
+    function removeVoter() {
+        const id = document.getElementById('voterSelect').value;
+        if(!id || !confirm("Remove this voter?")) return;
+        let voters = JSON.parse(localStorage.getItem('voters'));
+        localStorage.setItem('voters', JSON.stringify(voters.filter(v => v.id !== id)));
+        updateVoterDropdown();
+        alert("Voter Removed.");
+    }
+
+    function updateVoterDropdown() {
+        const voters = JSON.parse(localStorage.getItem('voters')) || [];
+        const select = document.getElementById('voterSelect');
+        if(voters.length === 0) {
+            select.innerHTML = "<option value=''>No Voters Registered</option>";
+            return;
+        }
+        select.innerHTML = voters.map(v => `<option value="${v.id}">${v.id} [${v.hasVoted ? 'VOTED' : 'PENDING'}]</option>`).join('');
+    }
+
+    // --- SLOT 3: CANDIDATE CRUD ---
+    function addCandidate() {
+        const name = document.getElementById('newCName').value.trim();
+        if(!name) return;
+        let cands = JSON.parse(localStorage.getItem('candidates')) || [];
+        if(cands.includes(name)) return alert("Candidate already exists");
+        cands.push(name);
+        localStorage.setItem('candidates', JSON.stringify(cands));
+        let votes = JSON.parse(localStorage.getItem('votes')) || {};
+        votes[name] = 0;
+        localStorage.setItem('votes', JSON.stringify(votes));
+        updateCandidateDropdown();
+        document.getElementById('newCName').value = "";
+        alert("Candidate Added!");
+    }
+
+    function editCandidate() {
+        const oldN = document.getElementById('editCSelect').value;
+        const newN = document.getElementById('editCName').value.trim();
+        if(!oldN || !newN) return;
+        let cands = JSON.parse(localStorage.getItem('candidates'));
+        let votes = JSON.parse(localStorage.getItem('votes')) || {};
+        cands[cands.indexOf(oldN)] = newN;
+        votes[newN] = votes[oldN] || 0;
+        delete votes[oldN];
+        localStorage.setItem('candidates', JSON.stringify(cands));
+        localStorage.setItem('votes', JSON.stringify(votes));
+        updateCandidateDropdown();
+        alert("Candidate Updated.");
+    }
+
+    function removeCandidate() {
+        const name = document.getElementById('editCSelect').value;
+        if(!name || !confirm("Delete this Candidate?")) return;
+        let cands = JSON.parse(localStorage.getItem('candidates'));
+        let votes = JSON.parse(localStorage.getItem('votes')) || {};
+        localStorage.setItem('candidates', JSON.stringify(cands.filter(c => c !== name)));
+        delete votes[name];
+        localStorage.setItem('votes', JSON.stringify(votes));
+        updateCandidateDropdown();
+        alert("Candidate Removed.");
+    }
+
+    function updateCandidateDropdown() {
+        const cands = JSON.parse(localStorage.getItem('candidates')) || [];
+        const select = document.getElementById('editCSelect');
+        if(cands.length === 0) {
+            select.innerHTML = "<option value=''>No Candidates Registered</option>";
+            return;
+        }
+        select.innerHTML = cands.map(c => `<option value="${c}">${c}</option>`).join('');
+    }
+</script>
+</body>
+</html>

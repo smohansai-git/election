@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Security Settings</title>
+    <style>
+        :root { --primary: #e94560; --bg: #1a1a2e; --card: #16213e; --text: #ffffff; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: var(--card); padding: 35px; border-radius: 20px; width: 400px; text-align: center; border: 1px solid #0f3460; box-shadow: 0 15px 35px rgba(0,0,0,0.5); }
+        h2 { color: var(--primary); margin-bottom: 25px; }
+        .input-group { position: relative; margin-bottom: 15px; text-align: left; }
+        input { width: 100%; padding: 12px; border-radius: 8px; border: none; box-sizing: border-box; background: #f8f9fa; color: #333; font-size: 15px; }
+        .eye { position: absolute; right: 12px; top: 12px; cursor: pointer; color: #333; font-size: 18px; user-select: none; }
+        button { width: 100%; padding: 14px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; text-transform: uppercase; margin-top: 10px; }
+        .btn-verify { background: #3498db; color: white; }
+        .btn-update { background: #27ae60; color: white; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>Admin Security</h2>
+        
+        <div id="verifyStep">
+            <p>Verify Current Identity:</p>
+            <div class="input-group"><input type="text" id="prevId" placeholder="Current ID"></div>
+            <div class="input-group">
+                <input type="password" id="prevPass" placeholder="Current Password">
+                <span class="eye" onclick="toggle('prevPass')">👁️</span>
+            </div>
+            <button class="btn-verify" onclick="verifyCurrent()">Verify Credentials</button>
+        </div>
+
+        <div id="changeStep" class="hidden">
+            <p style="color: #27ae60;">Verification Successful!</p>
+            <div class="input-group"><input type="text" id="newId" placeholder="Enter New ID"></div>
+            <div class="input-group">
+                <input type="password" id="newPass" placeholder="Enter New Password">
+                <span class="eye" onclick="toggle('newPass')">👁️</span>
+            </div>
+            <button class="btn-update" onclick="updateCredentials()">Apply Changes</button>
+        </div>
+    </div>
+
+    <script>
+        function toggle(id) { const x = document.getElementById(id); x.type = x.type === "password" ? "text" : "password"; }
+
+        function getCreds() {
+            const saved = localStorage.getItem('adminMainCreds');
+            // Logic still uses sitams143/election143 as the internal default, but it's not shown to the user
+            return saved ? JSON.parse(saved) : { id: "sitams143", pass: "election143" };
+        }
+
+        function verifyCurrent() {
+            const current = getCreds();
+            const inputId = document.getElementById('prevId').value;
+            const inputPass = document.getElementById('prevPass').value;
+            if (inputId === current.id && inputPass === current.pass) {
+                document.getElementById('verifyStep').classList.add('hidden');
+                document.getElementById('changeStep').classList.remove('hidden');
+            } else { alert("Verification Failed: Incorrect Credentials"); }
+        }
+
+        function updateCredentials() {
+            const newId = document.getElementById('newId').value.trim();
+            const newPass = document.getElementById('newPass').value.trim();
+            if (!newId || !newPass) { alert("Please fill both fields"); return; }
+            localStorage.setItem('adminMainCreds', JSON.stringify({ id: newId, pass: newPass }));
+            alert("Credentials Updated Successfully!");
+            window.close();
+        }
+    </script>
+</body>
+</html>
